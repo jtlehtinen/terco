@@ -16,6 +16,8 @@ type VSCodeTheme struct {
 	Colors struct {
 		EditorForeground                           string `json:"editor.foreground"`                           // Editor background color.
 		EditorBackground                           string `json:"editor.background"`                           // Editor default foreground color.
+		EditorCursorForeground                     string `json:"editorCursor.foreground"`                     // Color of the editor cursor.
+		EditorSelectionBackground                  string `json:"editor.selectionBackground"`                  // Color of the editor selection.
 		TerminalBackground                         string `json:"terminal.background"`                         // The background of the Integrated Terminal's viewport.
 		TerminalBorder                             string `json:"terminal.border"`                             // The color of the border that separates split panes within the terminal. This defaults to panel.border.
 		TerminalForeground                         string `json:"terminal.foreground"`                         // The default foreground color of the Integrated Terminal.
@@ -52,6 +54,7 @@ type TerminalTheme struct {
 	Black               string `json:"black"`
 	Blue                string `json:"blue"`
 	BrightBlack         string `json:"brightBlack"`
+	BrightBlue          string `json:"brightBlue"`
 	BrightCyan          string `json:"brightCyan"`
 	BrightGreen         string `json:"brightGreen"`
 	BrightPurple        string `json:"brightPurple"`
@@ -70,8 +73,6 @@ type TerminalTheme struct {
 }
 
 func toTerminalTheme(vs *VSCodeTheme) *TerminalTheme {
-	result := new(TerminalTheme)
-
 	choose := func(colors ...string) string {
 		for _, c := range colors {
 			if c != "" {
@@ -82,26 +83,31 @@ func toTerminalTheme(vs *VSCodeTheme) *TerminalTheme {
 		return defaultColor
 	}
 
+	c := &vs.Colors
+
+	result := new(TerminalTheme)
+
 	result.Name = vs.Name
-	result.Background = choose(vs.Colors.TerminalBackground)
-	result.Black = choose(vs.Colors.TerminalAnsiBlack)
-	result.Blue = choose(vs.Colors.TerminalAnsiBlue)
-	result.BrightBlack = choose(vs.Colors.TerminalAnsiBrightBlack)
-	result.BrightCyan = choose(vs.Colors.TerminalAnsiBrightCyan)
-	result.BrightGreen = choose(vs.Colors.TerminalAnsiBrightGreen)
-	result.BrightPurple = choose(vs.Colors.TerminalAnsiBrightMagenta)
-	result.BrightRed = choose(vs.Colors.TerminalAnsiBrightRed)
-	result.BrightWhite = choose(vs.Colors.TerminalAnsiBrightWhite)
-	result.BrightYellow = choose(vs.Colors.TerminalAnsiBrightYellow)
-	result.CursorColor = choose(vs.Colors.TerminalCursorForeground)
-	result.Cyan = choose(vs.Colors.TerminalAnsiCyan)
-	result.Foreground = choose(vs.Colors.TerminalForeground)
-	result.Green = choose(vs.Colors.TerminalAnsiGreen)
-	result.Purple = choose(vs.Colors.TerminalAnsiMagenta)
-	result.Red = choose(vs.Colors.TerminalAnsiRed)
-	result.SelectionBackground = choose(vs.Colors.TerminalSelectionBackground)
-	result.White = choose(vs.Colors.TerminalAnsiWhite)
-	result.Yellow = choose(vs.Colors.TerminalAnsiYellow)
+	result.Background = choose(c.TerminalBackground, c.EditorBackground)
+	result.Black = choose(c.TerminalAnsiBlack, "#000000")
+	result.Blue = choose(c.TerminalAnsiBlue, "#6182b8")
+	result.BrightBlack = choose(c.TerminalAnsiBrightBlack, "#90a4ae")
+	result.BrightBlue = choose(c.TerminalAnsiBrightBlue, "#6182b8")
+	result.BrightCyan = choose(c.TerminalAnsiBrightCyan, "#39adb5")
+	result.BrightGreen = choose(c.TerminalAnsiBrightGreen, "#91b859")
+	result.BrightPurple = choose(c.TerminalAnsiBrightMagenta, "#7c4dff")
+	result.BrightRed = choose(c.TerminalAnsiBrightRed, "#e53935")
+	result.BrightWhite = choose(c.TerminalAnsiBrightWhite, "#ffffff")
+	result.BrightYellow = choose(c.TerminalAnsiBrightYellow, "#ffb62c")
+	result.CursorColor = choose(c.TerminalCursorForeground, c.EditorCursorForeground)
+	result.Cyan = choose(c.TerminalAnsiCyan, "#39adb5")
+	result.Foreground = choose(c.TerminalForeground, c.EditorForeground)
+	result.Green = choose(c.TerminalAnsiGreen, "#91b859")
+	result.Purple = choose(c.TerminalAnsiMagenta, "#7c4dff")
+	result.Red = choose(c.TerminalAnsiRed, "#e53935")
+	result.SelectionBackground = choose(c.TerminalSelectionBackground, c.EditorSelectionBackground)
+	result.White = choose(c.TerminalAnsiWhite, "#ffffff")
+	result.Yellow = choose(c.TerminalAnsiYellow, "#ffb62c")
 
 	return result
 }
