@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"reflect"
 )
 
 // @TODO: Check the color output of vscode and terminal. Color space conversion needed?
-
-const defaultColor = "#FF0000"
 
 type VSCodeTheme struct {
 	Name   string `json:"name"`
@@ -72,42 +71,60 @@ type TerminalTheme struct {
 	Yellow              string `json:"yellow"`
 }
 
+func getFieldTag(theme *TerminalTheme, field any, tag string) string {
+	structValue := reflect.ValueOf(theme).Elem()
+	fieldValue := reflect.ValueOf(field).Elem()
+
+	for i := 0; i < structValue.NumField(); i++ {
+		value := structValue.Field(i)
+		if value.Addr().Interface() == fieldValue.Addr().Interface() {
+			return structValue.Type().Field(i).Tag.Get(tag)
+		}
+	}
+
+	return ""
+}
+
 func toTerminalTheme(vs *VSCodeTheme) *TerminalTheme {
-	choose := func(colors ...string) string {
+	result := new(TerminalTheme)
+
+	chooseColor := func(dest *string, defaultColor string, colors ...string) {
 		for _, c := range colors {
 			if c != "" {
-				return c
+				*dest = c
+				return
 			}
 		}
-		fmt.Println("no color found, using default color")
-		return defaultColor
+
+		tag := getFieldTag(result, dest, "json")
+		fmt.Fprintf(os.Stderr, "no color for %q using default %q\n", tag, defaultColor)
+
+		*dest = defaultColor
 	}
 
 	c := &vs.Colors
 
-	result := new(TerminalTheme)
-
 	result.Name = vs.Name
-	result.Background = choose(c.TerminalBackground, c.EditorBackground)
-	result.Black = choose(c.TerminalAnsiBlack, "#000000")
-	result.Blue = choose(c.TerminalAnsiBlue, "#6182b8")
-	result.BrightBlack = choose(c.TerminalAnsiBrightBlack, "#90a4ae")
-	result.BrightBlue = choose(c.TerminalAnsiBrightBlue, "#6182b8")
-	result.BrightCyan = choose(c.TerminalAnsiBrightCyan, "#39adb5")
-	result.BrightGreen = choose(c.TerminalAnsiBrightGreen, "#91b859")
-	result.BrightPurple = choose(c.TerminalAnsiBrightMagenta, "#7c4dff")
-	result.BrightRed = choose(c.TerminalAnsiBrightRed, "#e53935")
-	result.BrightWhite = choose(c.TerminalAnsiBrightWhite, "#ffffff")
-	result.BrightYellow = choose(c.TerminalAnsiBrightYellow, "#ffb62c")
-	result.CursorColor = choose(c.TerminalCursorForeground, c.EditorCursorForeground)
-	result.Cyan = choose(c.TerminalAnsiCyan, "#39adb5")
-	result.Foreground = choose(c.TerminalForeground, c.EditorForeground)
-	result.Green = choose(c.TerminalAnsiGreen, "#91b859")
-	result.Purple = choose(c.TerminalAnsiMagenta, "#7c4dff")
-	result.Red = choose(c.TerminalAnsiRed, "#e53935")
-	result.SelectionBackground = choose(c.TerminalSelectionBackground, c.EditorSelectionBackground)
-	result.White = choose(c.TerminalAnsiWhite, "#ffffff")
-	result.Yellow = choose(c.TerminalAnsiYellow, "#ffb62c")
+	chooseColor(&result.Background, "#ff0000", c.TerminalBackground, c.EditorBackground)
+	chooseColor(&result.Black, "#000000", c.TerminalAnsiBlack)
+	chooseColor(&result.Blue, "#6182b8", c.TerminalAnsiBlue)
+	chooseColor(&result.BrightBlack, "#90a4ae", c.TerminalAnsiBrightBlack)
+	chooseColor(&result.BrightBlue, "#6182b8", c.TerminalAnsiBrightBlue)
+	chooseColor(&result.BrightCyan, "#39adb5", c.TerminalAnsiBrightCyan)
+	chooseColor(&result.BrightGreen, "#91b859", c.TerminalAnsiBrightGreen)
+	chooseColor(&result.BrightPurple, "#7c4dff", c.TerminalAnsiBrightMagenta)
+	chooseColor(&result.BrightRed, "#e53935", c.TerminalAnsiBrightRed)
+	chooseColor(&result.BrightWhite, "#ffffff", c.TerminalAnsiBrightWhite)
+	chooseColor(&result.BrightYellow, "#ffb62c", c.TerminalAnsiBrightYellow)
+	chooseColor(&result.CursorColor, "#ff0000", c.TerminalCursorForeground, c.EditorCursorForeground)
+	chooseColor(&result.Cyan, "#39adb5", c.TerminalAnsiCyan)
+	chooseColor(&result.Foreground, "#ff0000", c.TerminalForeground, c.EditorForeground)
+	chooseColor(&result.Green, "#91b859", c.TerminalAnsiGreen)
+	chooseColor(&result.Purple, "#7c4dff", c.TerminalAnsiMagenta)
+	chooseColor(&result.Red, "#e53935", c.TerminalAnsiRed)
+	chooseColor(&result.SelectionBackground, "#ff0000", c.TerminalSelectionBackground, c.EditorSelectionBackground)
+	chooseColor(&result.White, "#ffffff", c.TerminalAnsiWhite)
+	chooseColor(&result.Yellow, "#ffb62c", c.TerminalAnsiYellow)
 
 	return result
 }
