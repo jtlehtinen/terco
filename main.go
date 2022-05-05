@@ -140,7 +140,7 @@ func VSCodeToTerminal(vscode []byte) (*TerminalTheme, error) {
 }
 
 func printUsageAndExit() {
-	w := os.Stdout
+	w := os.Stderr
 	fmt.Fprintf(w, "terco converts Visual Studio Code color theme to Windows Terminal color theme\n\n")
 	fmt.Fprintf(w, "USAGE:\n")
 	fmt.Fprintf(w, "\tterco <vscode-theme-file>\n\n")
